@@ -23,8 +23,16 @@ class ModeSqueezeplayer(RadioBaseMode):
         super(ModeSqueezeplayer, self).__init__()
 
         # Define and build menu
-        self.menu = [("Show Device Name", self.show_device_name),
-                     ("WiFi Strength", self.show_wifi)]
+        self.menu = [("Play", self.play),
+                     ("Play/Pause", self.toggle),
+                     ("Stop", self.stop),
+                     ("Next track", self.next),
+                     ("Previous track", self.previous),
+                     ("Settings", [
+                         ("Show Device Name", self.show_device_name),
+                         ("WiFi Strength", self.show_wifi)
+                         ])
+                     ]
         self.build_menu()
 
         # Define some useful variables
@@ -36,6 +44,7 @@ class ModeSqueezeplayer(RadioBaseMode):
         self.connected = False
         self.server = None
         self.ref = PLAYER_MAC
+        self.player = None
 
     def enter(self):
         # Try to connect to server
@@ -136,3 +145,23 @@ class ModeSqueezeplayer(RadioBaseMode):
                 self.show_text("menuinfo", "WiFi strength: {}".format(wifi))
             except (KeyError, TypeError):
                 pass
+
+    def play(self):
+        if self.player:
+            self.player.play()
+
+    def toggle(self):
+        if self.player:
+            self.player.play_pause()
+
+    def stop(self):
+        if self.player:
+            self.player.stop()
+
+    def next(self):
+        if self.player:
+            self.player.next()
+
+    def previous(self):
+        if self.player:
+            self.player.previous()
