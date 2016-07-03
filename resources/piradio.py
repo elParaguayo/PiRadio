@@ -32,6 +32,8 @@ sel_a = 5
 sel_b = 6
 sel_button = 13
 
+DEBUG = False
+
 
 class PiRadio(object):
     """PiRadio class definition.
@@ -70,7 +72,7 @@ class PiRadio(object):
         self.selector = RadioSelector(self.pi, sel_a, sel_b, sel_button)
 
         # Define the LCD disply
-        self.lcd = RadioDisplay(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7,
+        self.lcd = RadioDisplay(self.pi, lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7,
                                 lcd_backlight)
 
         # Define the main menu object and set up some callbacks
@@ -120,6 +122,9 @@ class PiRadio(object):
         self.selector.bind_rotate(self.main_menu.rotate)
         self.selector.bind_select(self.main_menu.select)
 
+        if DEBUG:
+            self.debug_gpio()
+
     def exit(self):
         """Method to stop the radio and shutdown gracefully."""
 
@@ -136,7 +141,7 @@ class PiRadio(object):
         self.lcd.clear()
 
         # Turn the backlight off
-        self.lcd.set_backlight(0)
+        self.lcd.set_backlight(False)
 
     def change_mode(self, newmode):
         """Method to change the active mode of the radio."""
@@ -196,3 +201,30 @@ class PiRadio(object):
 
             # 1 second refresh should be accurate enough
             sleep(1)
+
+    def debug_gpio(self):
+        vol = [vol_a, vol_b, vol_button]
+        sel = [sel_a, sel_b, sel_button]
+        volstate = " ".join([str(self.pi.get_mode(x)) for x in vol])
+        selstate = " ".join([str(self.pi.get_mode(x)) for x in sel])
+
+        with open("/home/pi/gpio_debug.log", "w") as radio_debug:
+            w = radio_debug.write
+            w("DEBUGGING\n\n")
+            w("Started at {}\n\n".format(datetime.datetime.now()))
+            w("Volume buttons. Should be 0 0 0\n")
+            w("{}\n\n".format(volstate))
+            w("Menu buttons. Should be 0 0 0\n")
+            w("{}\n\n".format(selstate))
+            w("Callbacks\n")
+            w("Volume rotate: {}\n".format(self.volume_control.control.rot_callback))
+            w("Volume select: {}\n".format(self.volume_control.control.but_callback))
+            w("Volume cbA: {}\n".format(self.volume_control.control.cbA))
+            w("Volume cbB: {}\n".format(self.volume_control.control.cbB))
+            w("Volume cbButton: {}\n".format(self.volume_control.control.cbButton))
+
+            w("Menu rotate: {}\n".format(self.selector.rot_callback))
+            w("Menu select: {}\n".format(self.selector.but_callback))
+            w("Menu cbA: {}\n".format(self.selector.cbA))
+            w("Menu cbB: {}\n".format(self.selector.cbB))
+            w("Menu cbButton: {}\n".format(self.selector.cbButton))
