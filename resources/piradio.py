@@ -86,9 +86,8 @@ class PiRadio(object):
             # Add the mode-specific menu to our own menu
             self.main_menu.add_item(mode.modemenu)
 
-        # Bind the selection control actions to the main menu
-        self.selector.bind_rotate(self.main_menu.rotate)
-        self.selector.bind_select(self.main_menu.select)
+        # Set root recursively on menus
+        self.main_menu.set_root()
 
         # No mode set at the moment
         self.mode = None
@@ -116,6 +115,10 @@ class PiRadio(object):
 
         # Start the time thread
         self._time.start()
+
+        # Bind the selection control actions to the main menu
+        self.selector.bind_rotate(self.main_menu.rotate)
+        self.selector.bind_select(self.main_menu.select)
 
     def exit(self):
         """Method to stop the radio and shutdown gracefully."""
