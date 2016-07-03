@@ -19,9 +19,9 @@ pi = pigpio.pi()
 
 # Create an instance of the PiRadio and confirm which modes we want to run
 # NB the order of the modes here is how they will appear on the display
-radio = PiRadio(pi, [ModeBluetooth(),
-                     ModeSqueezeplayer(),
+radio = PiRadio(pi, [ModeSqueezeplayer(),
                      ModeRadio(),
+                     ModeBluetooth(),
                      ModeAirplay(),
                      ModeSettings()])
 
