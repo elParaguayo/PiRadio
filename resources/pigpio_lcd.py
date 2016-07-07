@@ -1,3 +1,13 @@
+"""
+Python bindings for HD44780 LCDs.
+
+Code is based on the code published at:
+http://www.raspberrypi-spy.co.uk/2012/08/20x4-lcd-module-control-using-python/
+
+I have simply adapted the module to use pigpio to control the GPIO pins.
+
+All credit should therefore go to the original author!
+"""
 import pigpio
 import time
 
