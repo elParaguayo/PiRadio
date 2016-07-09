@@ -21,7 +21,8 @@ class VolumeControl(object):
     INITIAL_VOL = 50
 
     # Amount to change volume by (percent)
-    INCREMENT = 5
+    # The display can handle increments as small as 2%
+    INCREMENT = 4
 
     # Base command for adjusting volume
     #CMD = "amixer set Master {vol}% > /dev/null"

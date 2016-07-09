@@ -103,6 +103,19 @@ class PiRadio(object):
         # Turn on the display
         self.lcd.start()
 
+        # Give the LCD time to settle after starting up
+        self.lcd.queue.put(("menuinfo", "Configuring..."))
+        sleep(1)
+
+        # Define custom volume characters
+        vol_chars = ([0x10,0x10,0x10,0x17,0x10,0x10,0x10,0x10],
+                     [0x18,0x18,0x18,0x1b,0x18,0x18,0x18,0x18],
+                     [0x1c,0x1c,0x1c,0x1d,0x1c,0x1c,0x1c,0x1c],
+                     [0x1e,0x1e,0x1e,0x1e,0x1e,0x1e,0x1e,0x1e])
+
+        for i, pattern in enumerate(vol_chars):
+            self.lcd.lcd.create_char(i, pattern)
+            sleep(0.5)
 
         # We need an internet conncetion, so let's check we've got one.
         i = 1
@@ -111,6 +124,7 @@ class PiRadio(object):
             self.lcd.queue.put(("menuinfo", "Checking connection."))
             self.lcd.queue.put(("menuinfo2", "Attempt: {}".format(i)))
             i += 1
+            sleep(1)
 
         self.lcd.queue.put(("menuinfo", "Radio online"))
         self.lcd.queue.put(("menuinfo2", ""))
@@ -191,8 +205,15 @@ class PiRadio(object):
         # We've got 10 boxes for volume so rebase the percentage number
         l = int(level/10)
 
+        remainder = level % 10
+
+        if remainder:
+            extra = chr((remainder / 2) -1)
+        else:
+            extra = ""
+
         # Create the volume string (square blocks for volume padded with '-')
-        vol = "{v:-<10}".format(v=chr(255)*l)
+        vol = "{v:-<10}".format(v=chr(255)*l + extra)
 
         # Send the string to the display
         if self.lcd.queue:
