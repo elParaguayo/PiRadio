@@ -41,9 +41,13 @@ class RadioMenuBase(object):
 
     def remove_item(self, item):
         """Removes item from the menu."""
+        print self.items
         self.items.remove(item)
         if item.parent == self:
             item.parent = None
+
+    def __repr__(self):
+        return "RadioMenu {}".format(self.name)
 
 
 class RadioMenu(RadioMenuBase):
@@ -101,6 +105,7 @@ class RadioMenu(RadioMenuBase):
 
             # Reset the index
             self.idx = 0
+            self.draw()
 
         # If it's a submenu
         elif isinstance(self.menu.items[self.idx], RadioSubmenu):
@@ -142,8 +147,35 @@ class RadioSubmenu(RadioMenuBase):
         """Changes the active menu to the parent menu."""
         if self.menu.parent is not None:
             self.root.menu = self.menu.parent
-            self.idx = 0
+            self.root.idx = 0
 
+
+class RadioTempMenu(RadioMenuBase):
+    """Temporary submenu.
+
+       Should be used to create dynamic menus which can be removed from parent.
+    """
+    def __init__(self, name, items=None, autodelete=True):
+        super(RadioTempMenu, self).__init__(name, items=items)
+        self.autodelete = autodelete
+
+    def remove_menu(self):
+        if self.parent is not None:
+            self.root.menu = self.parent
+            self.root.idx = 0
+
+
+class RadioTempItem(object):
+    """Menu item class for callable items."""
+    def __init__(self, name, target=None):
+        """Initialise a menu item with a specific callback."""
+        self.name = name
+        self.parent = None
+        self._target_func = target
+
+    def target(self):
+        self._target_func()
+        self.parent.remove_menu()
 
 class RadioMenuMode(RadioSubmenu):
     """Mode menu object.

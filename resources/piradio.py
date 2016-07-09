@@ -138,6 +138,9 @@ class PiRadio(object):
             # Add the mode-specific menu to our own menu
             self.main_menu.add_item(mode.modemenu)
 
+            # Add a reference to the menu in each mode
+            mode.root_menu = self.main_menu
+
         # Set root recursively on menus
         self.main_menu.set_root()
 
