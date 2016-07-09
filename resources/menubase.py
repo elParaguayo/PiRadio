@@ -41,7 +41,6 @@ class RadioMenuBase(object):
 
     def remove_item(self, item):
         """Removes item from the menu."""
-        print self.items
         self.items.remove(item)
         if item.parent == self:
             item.parent = None
