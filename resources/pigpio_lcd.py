@@ -137,9 +137,18 @@ class PIGPIO_LCD(object):
         """Clears the LCD screen."""
         self.lcd_byte(0x01,LCD_CMD)
 
+    def create_char(self, position, pattern):
+        """Create a custom character in position 0-7."""
+        position &= 0x7
+        self.lcd_byte(0x40 | (position << 3), LCD_CMD)
+        for i in range(8):
+            self.lcd_byte(pattern[i], LCD_CHR)
+
     def start(self):
         """Start the LCD screen. Initialise, LED on, clear display."""
         self._setup()
         self.set_backlight(True)
         self.lcd_init()
+        time.sleep(0.1)
         self.clear()
+        time.sleep(0.1)
