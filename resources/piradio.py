@@ -6,6 +6,7 @@ from .menubase import RadioMenu
 from .radioselector import RadioSelector
 from .display import RadioDisplay
 from .volume_control import VolumeControl
+from .internet_check import internet_is_connected
 
 
 # Initial volume on boot (0-100)
@@ -62,6 +63,7 @@ class PiRadio(object):
           Note: Initialising the class does not start the application.
         """
         self.pi = pi
+        self.modes = modes
 
         # Define the volume control and set its callback function
         self.volume_control = VolumeControl(self.pi, vol_a, vol_b, vol_button,
@@ -78,18 +80,6 @@ class PiRadio(object):
         # Define the main menu object and set up some callbacks
         self.main_menu = RadioMenu("", modeselect=self.change_mode,
                                        cb_display=self.menu_change)
-
-        # Build our menu based on the modes
-        for mode in modes:
-
-            # Modes need access to the LCD queue
-            mode.display_q = self.lcd.queue
-
-            # Add the mode-specific menu to our own menu
-            self.main_menu.add_item(mode.modemenu)
-
-        # Set root recursively on menus
-        self.main_menu.set_root()
 
         # No mode set at the moment
         self.mode = None
@@ -110,10 +100,36 @@ class PiRadio(object):
         # Set a flag to show we're running
         self.running = True
 
+        # Turn on the display
+        self.lcd.start()
+
+
+        # We need an internet conncetion, so let's check we've got one.
+        i = 1
+
+        while not internet_is_connected():
+            self.lcd.queue.put(("menuinfo", "Checking connection."))
+            self.lcd.queue.put(("menuinfo2", "Attempt: {}".format(i)))
+            i += 1
+
+        self.lcd.queue.put(("menuinfo", "Radio online"))
+        self.lcd.queue.put(("menuinfo2", ""))
+
+        # Build our menu based on the modes
+        for mode in self.modes:
+
+            # Modes need access to the LCD queue
+            mode.display_q = self.lcd.queue
+
+            # Add the mode-specific menu to our own menu
+            self.main_menu.add_item(mode.modemenu)
+
+        # Set root recursively on menus
+        self.main_menu.set_root()
+
         # Start radio controls and display
         self.volume_control.start()
         self.selector.start()
-        self.lcd.start()
 
         # Start the time thread
         self._time.start()
