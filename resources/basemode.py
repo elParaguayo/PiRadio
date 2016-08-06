@@ -2,7 +2,11 @@ import unicodedata
 
 import pigpio
 
-from .menubase import RadioSubmenu, RadioMenuItem, RadioMenuMode
+from .menubase import (RadioSubmenu,
+                       RadioMenuItem,
+                       RadioMenuMode,
+                       RadioTempMenu,
+                       RadioTempItem)
 
 class RadioBaseMode(object):
     """Base class definition for radio modes. Any custom modes need to
@@ -30,6 +34,26 @@ class RadioBaseMode(object):
         """
         self.modemenu = self._get_menu_items()
 
+
+    def add_temp_menu(self, menu):
+        """Creates a temporary menu from the list provided and immediately
+           enters the submenu.
+        """
+        # Create a temporary menu
+        tempmenu = RadioTempMenu("")
+
+        # Add the menu items
+        tempmenu = self._walk_menu(menu, tempmenu, temp=True)
+
+        # Define root and parent menus
+        tempmenu.parent = self.root_menu.menu
+        tempmenu.root = self.root_menu
+
+        # Activate the tempory menu now
+        if self.root_menu:
+            self.root_menu.menu = tempmenu
+            self.root_menu.idx = 0
+
     def enter(self):
         """Each mode should be responsbible for starting any child processes,
            threads etc required for the operation of the mode.
@@ -46,8 +70,13 @@ class RadioBaseMode(object):
         """
         pass
 
-    def _walk_menu(self, menu, parent):
+    def _walk_menu(self, menu, parent, temp=False):
         """Recursive method for building menu."""
+
+        # Check if we're building a temporary menu or not and retrieve
+        # appropriate classes
+        Submenu = RadioTempMenu if temp else RadioSubmenu
+        Item = RadioTempItem if temp else RadioMenuItem
 
         # Loop over menu items
         for text, target in menu:
@@ -56,12 +85,12 @@ class RadioBaseMode(object):
             if type(target) == list:
 
                 # If so, let's create it
-                submenu = self._walk_menu(target, RadioSubmenu(text))
+                submenu = self._walk_menu(target, Submenu(text))
                 parent.add_item(submenu)
 
             # If not, add the item
             else:
-                parent.add_item(RadioMenuItem(text, target))
+                parent.add_item(Item(text, target))
 
         # If we're in a submenu, we need to add a "Back" option.
         if isinstance(parent, RadioSubmenu):

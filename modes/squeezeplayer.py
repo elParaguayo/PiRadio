@@ -23,7 +23,8 @@ class ModeSqueezeplayer(RadioBaseMode):
         super(ModeSqueezeplayer, self).__init__()
 
         # Define and build menu
-        self.menu = [("Play", self.play),
+        self.menu = [("Playlists", self.get_playlists),
+                     ("Play", self.play),
                      ("Play/Pause", self.toggle),
                      ("Stop", self.stop),
                      ("Next track", self.next),
@@ -165,3 +166,35 @@ class ModeSqueezeplayer(RadioBaseMode):
     def previous(self):
         if self.player:
             self.player.previous()
+
+    def get_playlists(self):
+        """Creates a submenu showing list of available playlists on the server.
+
+           The menu is created each time the function is called so any new
+           additions on the server can be accessed without restarting the
+           radio.
+        """
+        # Get the list of playlists
+        playlists = self.player.get_playlists()
+
+        if playlists:
+            # Build a list of tuples that can be used to create a submenu
+            # tuples are ("Playlist Name", cmd_to_play_playlist)
+            tempmenu = [self.build_playlist_item(pl) for pl in playlists]
+            self.add_temp_menu(tempmenu)
+            self.root_menu.draw()
+
+        else:
+            # Tell user there are no playlists.
+            self.show_text("menuinfo", "No playlists found")
+
+    def build_playlist_item(self, item):
+        # Get playlist name and ID
+        name = item["playlist"]
+        plid = item["id"]
+
+        # Create a function to start the playlist
+        func = lambda plid=plid: self.player.play_playlist(plid)
+
+        # Return the tuple needed to create menu
+        return (name, func)
