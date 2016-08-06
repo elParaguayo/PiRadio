@@ -42,6 +42,21 @@ class LMSPlayer(object):
         self.track_duration = float(self.request("duration ?"))
         return self.track_duration["_duration"]
 
+    def play(self):
+        self.request("play")
+
+    def stop(self):
+        self.request("stop")
+
+    def play_pause(self):
+        self.request("pause")
+
+    def next(self):
+        self.request("playlist jump +1")
+
+    def previous(self):
+        self.request("playlist jump -1")
+
 class LMSServer(object):
     """
     Class for Logitech Media Server.

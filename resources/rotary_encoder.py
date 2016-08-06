@@ -8,7 +8,7 @@ import pigpio
 # http://abyz.co.uk/rpi/pigpio/code/rotary_encoder_py.zip
 # Thanks Joan!
 
-class RotaryEncoder(Thread):
+class RotaryEncoder(object):
     """Class to decode mechanical rotary encoder pulses and button presses.
 
        Now subclasses Thread so this runs in background."""
@@ -24,8 +24,6 @@ class RotaryEncoder(Thread):
              but_callback: (optional) Callback for button press
              but_debounce: (optional) Debounce time for button (default 400ms)
         """
-        super(RotaryEncoder, self).__init__()
-
         # Thread needs to be daemonised
         self.daemon = True
 
@@ -114,7 +112,7 @@ class RotaryEncoder(Thread):
         except AttributeError:
             pass
 
-    def run(self):
+    def start(self):
         """Starts the thread. No callbacks are activated until this point."""
 
         # Define the callbacks
@@ -129,7 +127,3 @@ class RotaryEncoder(Thread):
         self.cbButton = self.pi.callback(self.button,
                                          pigpio.EITHER_EDGE,
                                          self._but)
-
-        # Start looping
-        while True:
-            sleep(1)

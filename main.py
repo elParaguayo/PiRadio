@@ -7,6 +7,9 @@ import pigpio
 # Import main radio class
 from resources.piradio import PiRadio
 
+# Import signal handler
+from resources.graceful_killer import GracefulKiller
+
 # Import our modes
 from modes.bluetooth import ModeBluetooth
 from modes.settings import ModeSettings
@@ -25,19 +28,14 @@ radio = PiRadio(pi, [ModeSqueezeplayer(),
                      ModeAirplay(),
                      ModeSettings()])
 
+# Set up the signal handler
+handler = GracefulKiller()
+
 # Go!
 radio.start()
 
 # Keep the script alive
-while True:
-    try:
-        time.sleep(1)
+while not handler.killed:
+    time.sleep(1)
 
-    # Yes, this is bad practice but let's catch everything that goes wrong
-    except:
-        try:
-            radio.exit()
-        except TypeError:
-            pass
-
-        raise
+radio.exit()
