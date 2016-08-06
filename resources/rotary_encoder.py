@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep, time
 from threading import Thread
 
 import pigpio
@@ -34,7 +34,7 @@ class RotaryEncoder(object):
         self.rot_callback = rot_callback
         self.but_callback = but_callback
         self.but_tick = 0
-        self.bouncetime = but_debounce * 1000
+        self.bouncetime = but_debounce / 1000.0
 
         self.levA = 0
         self.levB = 0
@@ -97,11 +97,13 @@ class RotaryEncoder(object):
     def _but(self, gpio, level, tick):
 
         # We need to debounce the button press
+        cb_time = time()
+
         if (self.but_callback is not None and
-            pigpio.tickDiff(self.but_tick, tick) > self.bouncetime):
+            cb_time > (self.but_tick + self.bouncetime)):
 
             self.but_callback(level)
-            self.but_tick = tick
+            self.but_tick = cb_time
 
     def cancel(self):
         """Cancel the rotary encoder decoder."""
@@ -125,5 +127,5 @@ class RotaryEncoder(object):
                                     self._pulse)
 
         self.cbButton = self.pi.callback(self.button,
-                                         pigpio.EITHER_EDGE,
+                                         pigpio.FALLING_EDGE,
                                          self._but)
