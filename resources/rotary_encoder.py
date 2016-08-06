@@ -98,7 +98,7 @@ class RotaryEncoder(object):
 
         # We need to debounce the button press
         if (self.but_callback is not None and
-            tick > (self.but_tick + self.bouncetime)):
+            pigpio.tickDiff(self.but_tick, tick) > self.bouncetime):
 
             self.but_callback(level)
             self.but_tick = tick
