@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import signal
 from subprocess import call
 from time import sleep
