@@ -1,7 +1,7 @@
 # Internet Radio mode for PiRadio
 
 # Uses MPD to stream sources. Playlist of stations is defined in code below.
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 from time import sleep
 from threading import Thread
 
@@ -86,7 +86,10 @@ class ModeRadio(RadioBaseMode):
 
     def play_station(self, link):
         # Start the radio stream
-        _ = check_output(["mpc", "play", str(link)])
+        try:
+            _ = check_output(["mpc", "play", str(link)])
+        except CalledProcessError, e:
+            self.show_text("menuinfo", "Error!")
 
         # Set the metadata to show the name of the current station
         self.metadata["Album"] = STATIONS[link-1][0]
