@@ -39,10 +39,6 @@ class BluetoothDevice(object):
     def paired(self):
         return bool(self.get("Paired"))
 
-    @paired.setter
-    def paired(self, value):
-        self.Pair(bool(value))
-
     @property
     def name(self):
         return str(self.get("Name"))
