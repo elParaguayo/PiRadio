@@ -14,7 +14,7 @@ class RotaryEncoder(object):
        Now subclasses Thread so this runs in background."""
 
     def __init__(self, pi, rotA, rotB, button,
-                 rot_callback=None, but_callback=None, but_debounce=400):
+                 rot_callback=None, but_callback=None, but_debounce=600):
         """Class takes seven parameters:
              pi:           pigpio instance
              rotA:         GPIO pin for leg A of encoder

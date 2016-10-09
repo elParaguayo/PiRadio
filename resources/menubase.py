@@ -149,7 +149,7 @@ class RadioSubmenu(RadioMenuBase):
             self.root.idx = 0
 
 
-class RadioTempMenu(RadioMenuBase):
+class RadioTempMenu(RadioSubmenu):
     """Temporary submenu.
 
        Should be used to create dynamic menus which can be removed from parent.
@@ -173,8 +173,8 @@ class RadioTempItem(object):
         self._target_func = target
 
     def target(self):
-        self._target_func()
         self.parent.remove_menu()
+        self._target_func()
 
 class RadioMenuMode(RadioSubmenu):
     """Mode menu object.

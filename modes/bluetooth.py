@@ -12,6 +12,7 @@ from time import sleep
 import dbus
 
 from resources.basemode import RadioBaseMode
+from .lib.pybtooth import BluetoothManager
 
 # Define the dbus interface for metadata discovery
 PLAYER_IFACE = "org.bluez.MediaPlayer1"
@@ -25,7 +26,13 @@ class ModeBluetooth(RadioBaseMode):
         super(ModeBluetooth, self).__init__()
 
         # Create a basic menu.
-        self.menu = [("Show Device", self.show_device)]
+        self.menu = [("Play", self.Play),
+                     ("Pause", self.Pause),
+                     ("Stop", self.Stop),
+                     ("Previous Track", self.Previous),
+                     ("Next Track", self.Next),
+                     ("Scan for Devices", self.scan),
+                     ("Show Device", self.show_device)]
         self.build_menu()
 
         # Disable the bluetooth adaptor
@@ -33,6 +40,8 @@ class ModeBluetooth(RadioBaseMode):
 
         # Initialise dbus for metadata retrieval
         self.bus = dbus.SystemBus()
+
+        self.btooth = BluetoothManager()
 
         # Initialise some basic variables
         self.running = False
@@ -63,21 +72,66 @@ class ModeBluetooth(RadioBaseMode):
 
     def show_device(self):
         # Show text if the menu item is used.
-        self.show_text("menuinfo", "PiRadio")
+        connected = self.btooth.getConnectedDevices()
+
+        if connected:
+            try:
+                self.show_text("menuinfo", connected[0].name)
+            except:
+                self.show_text("menuinfo", "Name unknown")
+        else:
+            self.show_text("menuinfo", "No connections")
+
+    def scan(self):
+        self.btooth.Discover()
+        for i in range(10):
+            self.show_text("menuinfo", "Scanning: {}".format(10 - i))
+            sleep(1)
+        self.btooth.StopDiscovery()
+        self.btdevices = self.btooth.getNamedDevices()
+        if not self.btdevices:
+            self.show_text("menuinfo", "No devices found.")
+        else:
+            temp = []
+            for i, device in enumerate(self.btdevices):
+                func = lambda index=i: self.device_submenu(index)
+                name = device.name
+                if device.connected:
+                    name += " (*)"
+                temp.append((name, func))
+            self.add_temp_menu(temp)
+
+    def device_submenu(self, index):
+        device = self.btdevices[index]
+
+        menu = []
+        if device.connected:
+            menu.append(("Disconnect", device.Disconnect))
+        else:
+            if device.trusted:
+                menu.append(("Connect", device.Connect))
+            else:
+                menu.append(("Pair", device.Pair))
+
+        if device.paired:
+            func = lambda dev=device: self.btooth.Forget(dev)
+            menu.append(("Forget", func))
+
+        self.add_temp_menu(menu)
 
     def read_player(self):
         # Get the player properties
-        iface = "org.freedesktop.DBus.Properties"
-        props = self.player.GetAll(PLAYER_IFACE, dbus_interface=iface)
+        track = self.player.metadata
+        self.show_text("mode", self.player.name)
 
         # Check is there is a Track property (which contains track metadata)
-        if props.get("Track", False):
+        if track:
 
             # Get the available metadata
             mt = {}
-            mt["Title"]  = u"{}".format(props["Track"].get("Title"))
-            mt["Artist"] = u"{}".format(props["Track"].get("Artist"))
-            mt["Album"] = u"{}".format(props["Track"].get("Album"))
+            mt["Title"]  = track["Title"]
+            mt["Artist"] = track["Artist"]
+            mt["Album"] = track["Album"]
 
             # Store the metadata
             self.metadata = mt
@@ -89,6 +143,15 @@ class ModeBluetooth(RadioBaseMode):
             # Signal unsuccessful retrieval
             return False
 
+    def getCurrentMediaPlayer(self):
+
+        player = self.btooth.getCurrentMediaPlayer()
+
+        if player:
+            self.player = player
+        else:
+            self.player = None
+
     def poll_metadata(self):
         # If we've got an existing player instance, let's try to use it
         if self.player is not None:
@@ -97,33 +160,19 @@ class ModeBluetooth(RadioBaseMode):
             except:
                 self.player = None
 
-        # If not, we'll need to see if we can find it
-        try:
-            objects = self.manager.GetManagedObjects()
-        except:
-            objects = None
+        self.getCurrentMediaPlayer()
 
-        if not objects:
-            return False
-
-        else:
-            player_path = None
-            # Loop through the objects in our manager ...
-            for path, interfaces in objects.iteritems():
-
-                # ... and see if we find a bluetooth player
-                if PLAYER_IFACE in interfaces:
-                    player_path = path
-
-            player = None
-
-            # We've found a player, so now we can get the metadata
-            if player_path:
-                self.player = self.bus.get_object("org.bluez", player_path)
+        if self.player:
+            try:
                 return self.read_player()
-
-            else:
+            except:
                 return False
+        else:
+            self.show_text("mode", "Not Connected")
+            self.show_text("metadata", {"Title": "",
+                                        "Artist": "No player found",
+                                        "Album": ""})
+            return False
 
     def get_metadata(self):
         """Method to get track metadata. This should be run in a thread.
@@ -147,3 +196,31 @@ class ModeBluetooth(RadioBaseMode):
         else:
             _ = check_output(["sudo", "hciconfig", "hci0", "down"])
             _ = check_output(["sudo", "ifup", "wlan0"])
+
+    def player_control(self, command):
+
+        CMDS = ["Play", "Pause", "Stop", "Previous", "Next"]
+
+        if command not in CMDS:
+            return None
+
+        control = getattr(self.player, command)
+        try:
+            control()
+        except:
+            return None
+
+    def Play(self):
+        self.player_control("Play")
+
+    def Pause(self):
+        self.player_control("Pause")
+
+    def Stop(self):
+        self.player_control("Stop")
+
+    def Previous(self):
+        self.player_control("Previous")
+
+    def Next(self):
+        self.player_control("Next")
