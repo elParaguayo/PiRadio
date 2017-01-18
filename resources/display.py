@@ -4,7 +4,7 @@ from time import sleep, time
 from threading import Thread
 import unicodedata
 
-import Adafruit_CharLCD as LCD
+from .pigpio_lcd import PIGPIO_LCD as LCD
 
 # Define modes for the display (which determines template to be displayed)
 DISPLAY_CONTROLS = "controls"
@@ -33,7 +33,11 @@ class RadioDisplay(Thread):
        It must therefore be run by calling the "start" method.
     """
 
-    def __init__(self, rs, en, d4, d5, d6, d7, backlight=None, debug=False):
+    def __init__(self, pi, rs, en, d4, d5, d6, d7, backlight=None, debug=False):
+
+        self.lcd_config = (rs, en, d4, d5, d6, d7, DISPLAY_COLS, DISPLAY_ROWS)
+        self.bl = backlight
+        self.pi = pi
 
         # Initialise the Thread
         super(RadioDisplay, self).__init__()
@@ -54,7 +58,7 @@ class RadioDisplay(Thread):
         self.displaymode = DISPLAY_CONTROLS
 
         # Define which items won't force the menu to change to the menu mode
-        self.ignore = ["time", "menuinfo2"]
+        self.ignore = ["time", "menuinfo2", "mode"]
 
         # Define the templates for the modes
         self.templates = {"controls":
@@ -71,12 +75,6 @@ class RadioDisplay(Thread):
 
         # Create a single string of the current template
         # self.text = "\n".join(self.templates[self.displaymode])
-
-        # Create an instance of the display
-        self.lcd = LCD.Adafruit_CharLCD(rs, en, d4, d5, d6, d7,
-                                        DISPLAY_COLS, DISPLAY_ROWS,
-                                        backlight=backlight,
-                                        invert_polarity=False)
 
         # Define a dict of parameters that will be used to format the text
         # to be displayed on the LCD
@@ -121,6 +119,10 @@ class RadioDisplay(Thread):
            The thread will continue to monitor the queue and update the display
            for any new information received.
         """
+
+        # Create an instance of the display and start it
+        self.lcd = LCD(self.pi, *self.lcd_config, backlight=self.bl)
+        self.lcd.start()
 
         # How long to wait until changing to now playing mode
         change = time() + DISPLAY_TIMEOUT
@@ -213,13 +215,7 @@ class RadioDisplay(Thread):
 
     def write_line(self, line, text):
         """Method to write lines on the LCD."""
-
-        # Move the cursor to the start of the relevant line
-        self.lcd.set_cursor(0, line)
-
-        # Loop over the line and send each character to the display
-        for char in text:
-            self.lcd.write8(ord(char), True)
+        self.lcd.lcd_string(text, line + 1)
 
     def clear(self):
         """Clears the LCD display."""
