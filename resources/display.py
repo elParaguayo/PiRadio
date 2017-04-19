@@ -95,13 +95,40 @@ class RadioDisplay(Thread):
         # updated)
         self.dirty = ["XX" for _ in range(4)]
 
+    def remove_accents(self, data):
+        """Method to tidy up strings for the display.
+
+           The LCD can't handle accented characters so we need to make sure all
+           text is ASCII.
+
+           However, rather than removing accents, the code tries to replace the
+           letter with the non-accented version wherever possible. Removal of
+           characters is a last resort.
+        """
+        # Metadata is provided in a dict, so make sure each entry is compatible
+        # with our display
+        if type(data) == dict:
+            return {key: self.remove_accents(data[key]) for key in data}
+
+        else:
+            if type(data) == str:
+                data = unicode(data)
+
+            # Remove accents from letters
+            nfkd_form = unicodedata.normalize('NFKD', data)
+
+            # Remove accented letters (where not normalised above)
+            only_ascii = nfkd_form.encode('ASCII', 'ignore')
+
+            return only_ascii
+
     def parse_metadata(self, meta):
         """Method to update the dictionary of parameters with the metadata
            received from the radio.
         """
-        self.params["title"] = meta.get("Title", "")
-        self.params["artist"] = meta.get("Artist", "")
-        self.params["album"] = meta.get("Album", "")
+        self.params["title"] = self.remove_accents(meta.get("Title", ""))
+        self.params["artist"] = self.remove_accents(meta.get("Artist", ""))
+        self.params["album"] = self.remove_accents(meta.get("Album", ""))
 
     def clear_metadata(self):
         """Method to remove the current metadata (e.g. when changing modes)."""
@@ -140,7 +167,7 @@ class RadioDisplay(Thread):
 
                 # Anything else can be added straight to the dictionary
                 else:
-                    self.params[key] = text
+                    self.params[key] = self.remove_accents(text)
 
                     # Check whether we need to change the display mode
                     if not key in self.ignore:
