@@ -149,7 +149,7 @@ class RadioSubmenu(RadioMenuBase):
             self.root.idx = 0
 
 
-class RadioTempMenu(RadioMenuBase):
+class RadioTempMenu(RadioSubmenu):
     """Temporary submenu.
 
        Should be used to create dynamic menus which can be removed from parent.

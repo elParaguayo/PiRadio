@@ -112,7 +112,10 @@ class RadioDisplay(Thread):
 
         else:
             if type(data) == str:
-                data = unicode(data)
+                try:
+                    data = unicode(data)
+                except UnicodeDecodeError:
+                    return data
 
             # Remove accents from letters
             nfkd_form = unicodedata.normalize('NFKD', data)
@@ -126,9 +129,9 @@ class RadioDisplay(Thread):
         """Method to update the dictionary of parameters with the metadata
            received from the radio.
         """
-        self.params["title"] = self.remove_accents(meta.get("Title", ""))
-        self.params["artist"] = self.remove_accents(meta.get("Artist", ""))
-        self.params["album"] = self.remove_accents(meta.get("Album", ""))
+        self.params["title"] = meta.get("Title", "")
+        self.params["artist"] = meta.get("Artist", "")
+        self.params["album"] = meta.get("Album", "")
 
     def clear_metadata(self):
         """Method to remove the current metadata (e.g. when changing modes)."""
@@ -161,13 +164,15 @@ class RadioDisplay(Thread):
                 # See if there's anything in the queue
                 key, text = self.queue.get_nowait()
 
+                text = self.remove_accents(text)
+
                 # Metadata needs to be handled separately
                 if key == "metadata":
                     self.parse_metadata(text)
 
                 # Anything else can be added straight to the dictionary
                 else:
-                    self.params[key] = self.remove_accents(text)
+                    self.params[key] = text
 
                     # Check whether we need to change the display mode
                     if not key in self.ignore:
