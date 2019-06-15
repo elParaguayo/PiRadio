@@ -173,8 +173,8 @@ class RadioTempItem(object):
         self._target_func = target
 
     def target(self):
-        self._target_func()
         self.parent.remove_menu()
+        self._target_func()
 
 class RadioMenuMode(RadioSubmenu):
     """Mode menu object.

@@ -58,7 +58,7 @@ class RadioDisplay(Thread):
         self.displaymode = DISPLAY_CONTROLS
 
         # Define which items won't force the menu to change to the menu mode
-        self.ignore = ["time", "menuinfo2"]
+        self.ignore = ["time", "menuinfo2", "mode"]
 
         # Define the templates for the modes
         self.templates = {"controls":

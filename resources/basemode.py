@@ -47,13 +47,19 @@ class RadioBaseMode(object):
         tempmenu.add_back_item()
 
         # Define root and parent menus
-        tempmenu.parent = self.root_menu.menu
+        parent = self.root_menu.menu
+
+        while isinstance(parent, RadioTempMenu):
+            parent = parent.parent
+
+        tempmenu.parent = parent
         tempmenu.root = self.root_menu
 
         # Activate the tempory menu now
         if self.root_menu:
             self.root_menu.menu = tempmenu
             self.root_menu.idx = 0
+            self.root_menu.draw()
 
     def enter(self):
         """Each mode should be responsbible for starting any child processes,
