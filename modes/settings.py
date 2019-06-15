@@ -2,6 +2,7 @@
 #
 # Mode for handling commands etc.
 from subprocess import call, check_output
+from time import sleep
 
 from resources.basemode import RadioBaseMode
 
@@ -24,8 +25,14 @@ class ModeSettings(RadioBaseMode):
 
     def restart(self):
         self.show_text("menuinfo", "Restarting...")
+        sleep(0.2)
+        self.exit_radio()
+        sleep(0.5)
         call(["sudo", "reboot"])
 
     def shutdown(self):
         self.show_text("menuinfo", "Shutting down...")
+        sleep(0.2)
+        self.exit_radio()
+        sleep(0.5)
         call(["sudo", "poweroff"])

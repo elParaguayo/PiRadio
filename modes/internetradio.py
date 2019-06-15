@@ -18,7 +18,8 @@ STATIONS = [("Radio 1", "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1_mf_
             ("Radio 6", "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_6music_mf_p"),
             ("Capital FM", "http://media-sov.musicradio.com:80/CapitalMP3"),
             ("Heart", "http://media-sov.musicradio.com:80/HeartLondonMP3"),
-            ("XFM", "http://media-sov.musicradio.com:80/RadioXLondonMP3")]
+            ("XFM", "http://media-sov.musicradio.com:80/RadioXLondonMP3"),
+            ("Absolute Radio", "http://mp3-ar-128.timlradio.co.uk/")]
 
 
 class ModeRadio(RadioBaseMode):

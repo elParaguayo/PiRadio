@@ -135,6 +135,9 @@ class PiRadio(object):
             # Modes need access to the LCD queue
             mode.display_q = self.lcd.queue
 
+            # Give access to exit function
+            mode.exit_radio = self.exit
+
             # Add the mode-specific menu to our own menu
             self.main_menu.add_item(mode.modemenu)
 
@@ -169,6 +172,8 @@ class PiRadio(object):
             self.mode.exit()
         except (AttributeError, TypeError):
             pass
+
+        self.lcd.abort = True
 
         # Remove text from the display
         self.lcd.clear()

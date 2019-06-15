@@ -95,6 +95,8 @@ class RadioDisplay(Thread):
         # updated)
         self.dirty = ["XX" for _ in range(4)]
 
+        self.abort = False
+
     def remove_accents(self, data):
         """Method to tidy up strings for the display.
 
@@ -158,7 +160,7 @@ class RadioDisplay(Thread):
         change = time() + DISPLAY_TIMEOUT
 
         # Start our loop
-        while True:
+        while not self.abort:
             try:
 
                 # See if there's anything in the queue
@@ -256,3 +258,8 @@ class RadioDisplay(Thread):
     def set_backlight(self, state):
         """Method to turn the LCD backlight on or off."""
         self.lcd.set_backlight(state)
+
+    def turn_off(self):
+        """Clear the screen and turn off the backlight."""
+        self.clear()
+        self.set_backlight(False)

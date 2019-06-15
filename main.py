@@ -16,6 +16,7 @@ from modes.settings import ModeSettings
 from modes.squeezeplayer import ModeSqueezeplayer
 from modes.internetradio import ModeRadio
 from modes.airplay import ModeAirplay
+from modes.spotifyconnect import ModeSpotifyConnect
 
 # Get pigpio up and running
 pi = pigpio.pi()
@@ -23,6 +24,7 @@ pi = pigpio.pi()
 # Create an instance of the PiRadio and confirm which modes we want to run
 # NB the order of the modes here is how they will appear on the display
 radio = PiRadio(pi, [ModeSqueezeplayer(),
+                     ModeSpotifyConnect(playername="Kitchen Radio"),
                      ModeRadio(),
                      ModeBluetooth(),
                      ModeAirplay(),
