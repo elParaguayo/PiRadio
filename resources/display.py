@@ -95,6 +95,38 @@ class RadioDisplay(Thread):
         # updated)
         self.dirty = ["XX" for _ in range(4)]
 
+        self.abort = False
+
+    def remove_accents(self, data):
+        """Method to tidy up strings for the display.
+
+           The LCD can't handle accented characters so we need to make sure all
+           text is ASCII.
+
+           However, rather than removing accents, the code tries to replace the
+           letter with the non-accented version wherever possible. Removal of
+           characters is a last resort.
+        """
+        # Metadata is provided in a dict, so make sure each entry is compatible
+        # with our display
+        if type(data) == dict:
+            return {key: self.remove_accents(data[key]) for key in data}
+
+        else:
+            if type(data) == str:
+                try:
+                    data = unicode(data)
+                except UnicodeDecodeError:
+                    return data
+
+            # Remove accents from letters
+            nfkd_form = unicodedata.normalize('NFKD', data)
+
+            # Remove accented letters (where not normalised above)
+            only_ascii = nfkd_form.encode('ASCII', 'ignore')
+
+            return only_ascii
+
     def parse_metadata(self, meta):
         """Method to update the dictionary of parameters with the metadata
            received from the radio.
@@ -128,11 +160,13 @@ class RadioDisplay(Thread):
         change = time() + DISPLAY_TIMEOUT
 
         # Start our loop
-        while True:
+        while not self.abort:
             try:
 
                 # See if there's anything in the queue
                 key, text = self.queue.get_nowait()
+
+                text = self.remove_accents(text)
 
                 # Metadata needs to be handled separately
                 if key == "metadata":
@@ -224,3 +258,8 @@ class RadioDisplay(Thread):
     def set_backlight(self, state):
         """Method to turn the LCD backlight on or off."""
         self.lcd.set_backlight(state)
+
+    def turn_off(self):
+        """Clear the screen and turn off the backlight."""
+        self.clear()
+        self.set_backlight(False)

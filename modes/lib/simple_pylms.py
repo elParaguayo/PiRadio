@@ -52,7 +52,14 @@ class LMSPlayer(object):
                 "menu:1",
                 "cmd:load",
                 "playlist_id:{pl_id}".format(pl_id=pl_id)]
-        self.request(base)  
+        self.request(base)
+        self.playlist_play_index(0)
+
+    def get_playlist_items(self):
+        return self.request("status 0").get("playlist_loop", list())
+
+    def playlist_play_index(self, index):
+        self.request("playlist index {}".format(index))
 
     def play(self):
         self.request("play")

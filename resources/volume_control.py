@@ -26,7 +26,8 @@ class VolumeControl(object):
 
     # Base command for adjusting volume
     #CMD = "amixer set Master {vol}% > /dev/null"
-    CMD = "pactl set-sink-volume 0 {vol}%"
+    #CMD = "pactl set-sink-volume 0 {vol}%"
+    CMD = "amixer -c 1 set PCM {vol}% -M"
 
     def __init__(self, pi, pinA, pinB, button, led=None, cb=None):
 

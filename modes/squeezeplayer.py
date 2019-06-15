@@ -29,6 +29,8 @@ class ModeSqueezeplayer(RadioBaseMode):
                      ("Stop", self.stop),
                      ("Next track", self.next),
                      ("Previous track", self.previous),
+                     ("Select track", self.select_track),
+                     ("Restart", self.restart),
                      ("Settings", [
                          ("Show Device Name", self.show_device_name),
                          ("WiFi Strength", self.show_wifi)
@@ -198,3 +200,25 @@ class ModeSqueezeplayer(RadioBaseMode):
 
         # Return the tuple needed to create menu
         return (name, func)
+
+    def restart(self):
+        self.player.playlist_play_index(0)
+
+    def select_track(self):
+        tracks = self.player.get_playlist_items()
+
+        if tracks:
+            tempmenu = [self.build_track_item(track) for track in tracks]
+            self.add_temp_menu(tempmenu)
+            self.root_menu.draw()
+
+        else:
+            self.show_text("menuinfo", "No tracks found")
+
+    def build_track_item(self, track):
+        title = track["title"]
+        index = int(track["playlist index"])
+
+        func = lambda i=index: self.player.playlist_play_index(i)
+
+        return (title, func)

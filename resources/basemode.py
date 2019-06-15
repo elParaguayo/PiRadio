@@ -44,6 +44,7 @@ class RadioBaseMode(object):
 
         # Add the menu items
         tempmenu = self._walk_menu(menu, tempmenu, temp=True)
+        tempmenu.add_back_item()
 
         # Define root and parent menus
         tempmenu.parent = self.root_menu.menu
@@ -128,32 +129,32 @@ class RadioBaseMode(object):
            object.
         """
         if self.display_q:
-            text = self.remove_accents(text)
+            # text = self.remove_accents(text)
             self.display_q.put((key, text))
 
-    def remove_accents(self, data):
-        """Method to tidy up strings for the display.
-
-           The LCD can't handle accented characters so we need to make sure all
-           text is ASCII.
-
-           However, rather than removing accents, the code tries to replace the
-           letter with the non-accented version wherever possible. Removal of
-           characters is a last resort.
-        """
-        # Metadata is provided in a dict, so make sure each entry is compatible
-        # with our display
-        if type(data) == dict:
-            return {key: self.remove_accents(data[key]) for key in data}
-
-        else:
-            if type(data) == str:
-                data = unicode(data)
-
-            # Remove accents from letters
-            nfkd_form = unicodedata.normalize('NFKD', data)
-
-            # Remove accented letters (where not normalised above)
-            only_ascii = nfkd_form.encode('ASCII', 'ignore')
-
-            return only_ascii
+    # def remove_accents(self, data):
+    #     """Method to tidy up strings for the display.
+    #
+    #        The LCD can't handle accented characters so we need to make sure all
+    #        text is ASCII.
+    #
+    #        However, rather than removing accents, the code tries to replace the
+    #        letter with the non-accented version wherever possible. Removal of
+    #        characters is a last resort.
+    #     """
+    #     # Metadata is provided in a dict, so make sure each entry is compatible
+    #     # with our display
+    #     if type(data) == dict:
+    #         return {key: self.remove_accents(data[key]) for key in data}
+    #
+    #     else:
+    #         if type(data) == str:
+    #             data = unicode(data)
+    #
+    #         # Remove accents from letters
+    #         nfkd_form = unicodedata.normalize('NFKD', data)
+    #
+    #         # Remove accented letters (where not normalised above)
+    #         only_ascii = nfkd_form.encode('ASCII', 'ignore')
+    #
+    #         return only_ascii
